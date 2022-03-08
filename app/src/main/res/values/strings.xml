@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Weather</string>
+    <string name="test_city">城市</string>
+    <string name="test_weather_state">天气状态</string>
+    <string name="weather">温度</string>
+    <string name="degree">℃</string>
+</resources>
