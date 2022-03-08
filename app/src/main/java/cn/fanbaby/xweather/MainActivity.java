@@ -1,4 +1,4 @@
-package cn.fanbaby.weather;
+package cn.fanbaby.xweather;
 
 import android.os.Bundle;
 import android.widget.Toast;
