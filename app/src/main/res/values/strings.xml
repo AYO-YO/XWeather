@@ -4,4 +4,5 @@
     <string name="test_weather_state">天气状态</string>
     <string name="weather">温度</string>
     <string name="degree">℃</string>
+    <string name="noneData">N/A</string>
 </resources>

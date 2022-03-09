@@ -69,7 +69,7 @@ def getWeather(local: str, need) -> str:
 
 
 def getAQI(city, need):
-    url = f'http://web.juhe.cn/environment/air/cityair?city={city}&key=d0785a3a4b1ad9ab70bd114cd4640b0d'
+    url = f'http://web.juhe.cn/environment/air/pm?city={city}&key=d0785a3a4b1ad9ab70bd114cd4640b0d'
     j = getData(url)
     if need == 'pm25':
         return j['result'][0]['PM2.5']

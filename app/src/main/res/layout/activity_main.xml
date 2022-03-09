@@ -119,7 +119,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textSize="22sp"
-                                android:text="15℃" />
+                                android:text="@string/noneData" />
 
                         <ImageView
                                 android:layout_width="30dp"
@@ -132,7 +132,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textSize="22sp"
-                                android:text="5℃" />
+                                android:text="@string/noneData" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -146,7 +146,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="20"
+                        android:text="@string/noneData"
                         android:id="@+id/tv_wt_current_temp"
                         android:textSize="64sp"
                         android:layout_marginStart="30dp"
@@ -187,7 +187,7 @@
                         <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="999"
+                                android:text="@string/noneData"
                                 android:id="@+id/tv_wt_pm25_num"
                                 android:textSize="24sp" />
 
@@ -197,7 +197,7 @@
                                 android:textSize="24sp"
                                 android:layout_marginStart="10dp"
                                 android:id="@+id/tv_wt_pm25_state"
-                                android:text="重度污染" />
+                                android:text="@string/noneData" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -302,37 +302,37 @@
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_1st_temp" />
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_2nd_temp" />
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_3rd_temp" />
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_4th_temp" />
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_5th_temp" />
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_6th_temp" />
 
                     <TextView
                             style="@style/TextViewStyle"
-                            android:text="15℃"
+                            android:text="@string/noneData"
                             android:id="@+id/tv_wt_7th_temp" />
                 </LinearLayout>
 
@@ -357,12 +357,12 @@
                     <TextView
                             android:id="@+id/tv_wt_feature_1st_high_temp"
                             style="@style/FeatureTextStyle"
-                            android:text="18℃" />
+                            android:text="@string/noneData" />
 
                     <TextView
                             android:id="@+id/tv_wt_feature_1st_low_temp"
                             style="@style/FeatureTextStyle"
-                            android:text="10℃" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/LayoutItemStyle">
@@ -382,12 +382,12 @@
                     <TextView
                             android:id="@+id/tv_wt_feature_2nd_high_temp"
                             style="@style/FeatureTextStyle"
-                            android:text="18℃" />
+                            android:text="@string/noneData" />
 
                     <TextView
                             android:id="@+id/tv_wt_feature_2nd_low_temp"
                             style="@style/FeatureTextStyle"
-                            android:text="10℃" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/LayoutItemStyle">
@@ -407,12 +407,12 @@
                     <TextView
                             android:id="@+id/tv_wt_feature_3rd_high_temp"
                             style="@style/FeatureTextStyle"
-                            android:text="18℃" />
+                            android:text="@string/noneData" />
 
                     <TextView
                             android:id="@+id/tv_wt_feature_3rd_low_temp"
                             style="@style/FeatureTextStyle"
-                            android:text="10℃" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -436,7 +436,7 @@
                     <TextView
                             android:id="@+id/tv_wt_humidity"
                             style="@style/MoreTextStyle"
-                            android:text="0" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/LayoutItemStyle">
@@ -448,7 +448,7 @@
                     <TextView
                             android:id="@+id/tv_wt_aqi"
                             style="@style/MoreTextStyle"
-                            android:text="0" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/LayoutItemStyle">
@@ -460,7 +460,7 @@
                     <TextView
                             android:id="@+id/tv_wt_direct"
                             style="@style/MoreTextStyle"
-                            android:text="东风" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/LayoutItemStyle">
@@ -472,7 +472,7 @@
                     <TextView
                             android:id="@+id/tv_wt_power"
                             style="@style/MoreTextStyle"
-                            android:text="0" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/LayoutItemStyle">
@@ -484,7 +484,7 @@
                     <TextView
                             android:id="@+id/tv_wt_pm10"
                             style="@style/MoreTextStyle"
-                            android:text="0" />
+                            android:text="@string/noneData" />
                 </LinearLayout>
 
             </LinearLayout>
