@@ -6,6 +6,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,12 +25,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import cn.fanbaby.xweather.Utils.StateToIcon;
 import cn.fanbaby.xweather.Utils.pulltorefresh.PullToRefreshScrollView;
 
 public class MainActivity extends AppCompatActivity {
     private static final int OPEN_SET_REQUEST_CODE = 100;
     // 三个位置相关的权限
     private final String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS};
+    private final String TAG = "XWeather_MAIN";
     private TextView tv_city, tv_update_time, tv_wt_state, tv_temp_high, tv_temp_low, tv_temp_current, tv_pm25_num, tv_pm25_state, tv_time_1st, tv_time_2nd, tv_time_3rd, tv_time_4th, tv_time_5th, tv_time_6th, tv_time_7th, tv_temp_1st, tv_temp_2nd, tv_temp_3rd, tv_temp_4th, tv_temp_5th, tv_temp_6th, tv_temp_7th, tv_temp_feature_high_1st, tv_temp_feature_high_2nd, tv_temp_feature_high_3rd, tv_temp_feature_low_1st, tv_temp_feature_low_2nd, tv_temp_feature_low_3rd, tv_humidity, tv_aqi, tv_direct, tv_power, tv_pm10;
     private ImageView iv_pull_arrow, iv_wt_icon, iv_icon_time_1st, iv_icon_time_2nd, iv_icon_time_3rd, iv_icon_time_4th, iv_icon_time_5th, iv_icon_time_6th, iv_icon_time_7th, iv_icon_feature_1st, iv_icon_feature_2nd, iv_icon_feature_3rd;
     private Python py;
@@ -122,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
             if (location != null) {
                 userX = location.getLatitude();
                 userY = location.getLongitude();
+                Log.d(TAG, "getLocation: 获取维度成功：" + userX);
+                Log.d(TAG, "getLocation: 获取经度成功：" + userY);
             }
         }
     }
@@ -157,78 +162,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private void updateImage() {
         runOnUiThread(() -> {
-            iv_wt_icon.setImageResource(stateToIcon(currentState));
-            iv_icon_feature_1st.setImageResource(stateToIcon(day_1st_state));
-            iv_icon_feature_2nd.setImageResource(stateToIcon(day_2nd_state));
-            iv_icon_feature_3rd.setImageResource(stateToIcon(day_3rd_state));
+            iv_wt_icon.setImageResource(StateToIcon.stateToIcon(currentState));
+            iv_icon_feature_1st.setImageResource(StateToIcon.stateToIcon(day_1st_state));
+            iv_icon_feature_2nd.setImageResource(StateToIcon.stateToIcon(day_2nd_state));
+            iv_icon_feature_3rd.setImageResource(StateToIcon.stateToIcon(day_3rd_state));
         });
-    }
-
-    /**
-     * 将状态信息映射为drawable resource
-     *
-     * @param state 天气状态、
-     * @return R.drawable.x
-     */
-    private int stateToIcon(String state) {
-        switch (state) {
-            case "晴":
-                return R.drawable.ic_icon_qingtian;
-            case "多云":
-                return R.drawable.ic_icon_duoyun;
-            case "阴":
-                return R.drawable.ic_icon_yintian;
-            case "阵雨":
-                return R.drawable.ic_icon_zhenyu;
-            case "雷阵雨":
-                return R.drawable.ic_icon_leizhenyu;
-            case "雨夹雪":
-                break;
-            case "小雨":
-            case "小到中雨":
-                return R.drawable.ic_icon_xiaoyu;
-            case "中到大雨":
-            case "中雨":
-                return R.drawable.ic_icon_zhongyu;
-            case "大雨":
-                return R.drawable.ic_icon_dayu;
-            case "暴雨":
-            case "大暴雨":
-            case "特大暴雨":
-            case "大到暴雨":
-            case "暴雨到大暴雨":
-            case "大暴雨到特大暴雨":
-                return R.drawable.ic_icon_baoyu;
-            case "阵雪":
-                return R.drawable.ic_icon_zhenxue;
-            case "小雪":
-                return R.drawable.ic_icon_xiaoxue;
-            case "小到中雪":
-            case "中雪":
-                return R.drawable.ic_icon_zhongxue;
-            case "中到大雪":
-            case "大雪":
-                return R.drawable.ic_icon_daxue;
-            case "大到暴雪":
-            case "暴雪":
-                return R.drawable.ic_icon_baoxue;
-            case "雾":
-                return R.drawable.ic_icon_wu;
-            case "冻雨":
-                break;
-            case "强沙尘暴":
-            case "沙尘暴":
-                return R.drawable.ic_icon_shachenbao;
-            case "浮尘":
-                return R.drawable.ic_icon_fuchen;
-            case "扬沙":
-                return R.drawable.ic_icon_yangsha;
-            case "霾":
-                break;
-            default:
-                return R.drawable.ic_icon_wushuju;
-        }
-        return R.drawable.ic_icon_wushuju;
     }
 
     /**
@@ -339,8 +277,12 @@ public class MainActivity extends AppCompatActivity {
     private void listen() {
         rs.setOnRefreshListener(refreshView -> {
             getData(city);
-            Toast.makeText(this, "刷新成功！", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "刷新完成！", Toast.LENGTH_SHORT).show();
             rs.onRefreshComplete();
+        });
+
+        iv_pull_arrow.setOnClickListener(v -> {
+            Toast.makeText(this, "暂不支持手动选择城市，敬请期待", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -372,12 +314,16 @@ public class MainActivity extends AppCompatActivity {
      * @param city 城市
      */
     private void getData(String city) {
+        if ("定位失败".equals(city)) {
+            Toast.makeText(this, "无法获取位置信息！", Toast.LENGTH_SHORT).show();
+            return;
+        }
         // 获取更新数据的时间
         updateTime = getAQI(city, "time");
         currentState = getWeather(city, "state");
         currentTemp = getWeather(city, "current_temp");
-        highTemp = getWeather(city, "high_temp");
-        lowTemp = getWeather(city, "low_temp");
+        highTemp = getWeather(city, "high_temp") + "℃";
+        lowTemp = getWeather(city, "low_temp") + "℃";
         pm25 = getAQI(city, "pm25");
         airState = getAQI(city, "state");
         // 获取未来3天的最高温、最低温和天气情况

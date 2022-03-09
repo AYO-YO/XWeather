@@ -6,6 +6,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class InputStreamParse {
+    /**
+     * 将字节流转换为字符流，常用于网络请求到的数据和文件读取
+     *
+     * @param in 字节流
+     * @return 字符串
+     */
     public static String inputStream_to_String(InputStream in) {
         StringBuilder stringBuilder = new StringBuilder();
         InputStreamReader inReader = new InputStreamReader(in);

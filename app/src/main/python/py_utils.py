@@ -2,6 +2,8 @@ import functools
 import json
 import requests
 
+from city_info import table
+
 
 @functools.lru_cache()
 def getData(url) -> json:
@@ -74,14 +76,10 @@ def getWeather(local: str, need) -> str:
 
 
 def getCityPinyin(city):
-    with open('./city_info.json', 'rt', encoding='utf-8') as f:
-        table = json.loads(f.read().strip())
     return table[city]['en']
 
 
 def getCityCode(city):
-    with open('./city_info.json', 'rt', encoding='utf-8') as f:
-        table = json.loads(f.read().strip())
     return table[city]['code']
 
 
@@ -89,6 +87,7 @@ def getAQI(city, need):
     # url = f'http://web.juhe.cn/environment/air/pm?city={city}&key=d0785a3a4b1ad9ab70bd114cd4640b0d'
     url = f'https://api.help.bj.cn/apis/aqi2/?id={getCityCode(city)}'
     j = getData(url)
+    print(j)
     if j["status"] != "412":
         if need == 'pm25':
             return j['data'][0]['val']
@@ -97,14 +96,14 @@ def getAQI(city, need):
         elif need == 'state':
             return j['lev']
         elif need == 'time':
-            return j['update'][8:10] + ":" + j['update'][10:]
+            return j['updata'][8:10] + ":" + j['updata'][10:]
         else:
             return 'N/A'
     return 'N/A'
 
 
 def getCity(x, y):
-    url = f'https://restapi.amap.com/v3/geocode/regeo?key=f7e2de0fbef462404e89d6f465c20d76&location={x},{y}&poitype=&radius=0&extensions=all&batch=false&roadlevel=1'
+    url = f'https://restapi.amap.com/v3/geocode/regeo?key=f7e2de0fbef462404e89d6f465c20d76&location={y},{x}&poitype=&radius=0&extensions=all&batch=false&roadlevel=1'
     j = getData(url)
     data = j['regeocode']['addressComponent']['city']
     if data:
