@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import cn.fanbaby.xweather.Utils.pulltorefresh.PullToRefreshScrollView;
+
 public class MainActivity extends AppCompatActivity {
     private static final int OPEN_SET_REQUEST_CODE = 100;
     // 三个位置相关的权限
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView iv_pull_arrow, iv_wt_icon, iv_icon_time_1st, iv_icon_time_2nd, iv_icon_time_3rd, iv_icon_time_4th, iv_icon_time_5th, iv_icon_time_6th, iv_icon_time_7th, iv_icon_feature_1st, iv_icon_feature_2nd, iv_icon_feature_3rd;
     private Python py;
     private String city, updateTime, currentState, currentTemp, highTemp, lowTemp, pm25, airState, day_1st_high, day_2nd_high, day_3rd_high, day_1st_low, day_2nd_low, day_3rd_low, day_1st_state, day_2nd_state, day_3rd_state, humidity, aqi, direct, power, pm10, hour_next_3, hour_next_6, hour_next_9, hour_next_12, hour_next_15, hour_next_18, hour_next_21;
+    private PullToRefreshScrollView rs;
     private LocationManager locationManager;
     private String locationProvider;
     private double userX;
@@ -44,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         init();
         initPython();
         // 子线程，用于更新数据
-        initPermissions();
         new Thread(() -> {
             city = getCity();
             if (!city.equals("定位失败"))
@@ -113,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
+                initPermissions();
                 return;
             }
             Location location = locationManager.getLastKnownLocation(locationProvider);
@@ -323,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
         iv_icon_feature_1st = findViewById(R.id.iv_wt_feature_1st_state); // 明天天气图标
         iv_icon_feature_2nd = findViewById(R.id.iv_wt_feature_2nd_state); // 后天天气图标
         iv_icon_feature_3rd = findViewById(R.id.iv_wt_feature_3rd_state); // 大后天天气图标
+        rs = findViewById(R.id.rs_wt_pull_refresh);
         // 初始化位置信息
         userX = 0;
         userY = 0;
@@ -333,6 +337,11 @@ public class MainActivity extends AppCompatActivity {
      * 监听器
      */
     private void listen() {
+        rs.setOnRefreshListener(refreshView -> {
+            getData(city);
+            Toast.makeText(this, "刷新成功！", Toast.LENGTH_SHORT).show();
+            rs.onRefreshComplete();
+        });
     }
 
     /**
