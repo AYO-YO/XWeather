@@ -1,10 +1,19 @@
 package cn.fanbaby.xweather;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
@@ -12,13 +21,21 @@ import com.chaquo.python.android.AndroidPlatform;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int OPEN_SET_REQUEST_CODE = 100;
+    // 三个位置相关的权限
+    private final String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS};
     private TextView tv_city, tv_update_time, tv_wt_state, tv_temp_high, tv_temp_low, tv_temp_current, tv_pm25_num, tv_pm25_state, tv_time_1st, tv_time_2nd, tv_time_3rd, tv_time_4th, tv_time_5th, tv_time_6th, tv_time_7th, tv_temp_1st, tv_temp_2nd, tv_temp_3rd, tv_temp_4th, tv_temp_5th, tv_temp_6th, tv_temp_7th, tv_temp_feature_high_1st, tv_temp_feature_high_2nd, tv_temp_feature_high_3rd, tv_temp_feature_low_1st, tv_temp_feature_low_2nd, tv_temp_feature_low_3rd, tv_humidity, tv_aqi, tv_direct, tv_power, tv_pm10;
     private ImageView iv_pull_arrow, iv_wt_icon, iv_icon_time_1st, iv_icon_time_2nd, iv_icon_time_3rd, iv_icon_time_4th, iv_icon_time_5th, iv_icon_time_6th, iv_icon_time_7th, iv_icon_feature_1st, iv_icon_feature_2nd, iv_icon_feature_3rd;
     private Python py;
     private String city, updateTime, currentState, currentTemp, highTemp, lowTemp, pm25, airState, day_1st_high, day_2nd_high, day_3rd_high, day_1st_low, day_2nd_low, day_3rd_low, day_1st_state, day_2nd_state, day_3rd_state, humidity, aqi, direct, power, pm10, hour_next_3, hour_next_6, hour_next_9, hour_next_12, hour_next_15, hour_next_18, hour_next_21;
+    private LocationManager locationManager;
+    private String locationProvider;
+    private double userX;
+    private double userY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +44,49 @@ public class MainActivity extends AppCompatActivity {
         init();
         initPython();
         // 子线程，用于更新数据
+        initPermissions();
         new Thread(() -> {
             city = getCity();
-            getData(city);
+            if (!city.equals("定位失败"))
+                getData(city);
         }).start();
+    }
+
+    private void initPermissions() {
+        if (lacksPermission(permissions)) {//判断是否拥有权限
+            //请求权限，第二参数权限String数据，第三个参数是请求码便于在onRequestPermissionsResult 方法中根据code进行判断
+            ActivityCompat.requestPermissions(this, permissions, OPEN_SET_REQUEST_CODE);
+        }
+    }
+
+    //如果返回true表示缺少权限
+    public boolean lacksPermission(String[] permissions) {
+        for (String permission : permissions) {
+            //判断是否缺少权限，true=缺少权限
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case OPEN_SET_REQUEST_CODE:
+                if (grantResults.length > 0) {
+                    for (int i = 0; i < grantResults.length; i++) {
+                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                            Toast.makeText(this, "未获取权限", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+                } else {
+                    Toast.makeText(this, "未获取权限", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
     }
 
     /**
@@ -39,7 +95,50 @@ public class MainActivity extends AppCompatActivity {
      * @return 当前城市
      */
     private String getCity() {
-        return "新乡";
+        try {
+            getLocation();
+            return py.getModule("py_utils").callAttr("getCity", userX, userY).toString();
+        } catch (Exception e) {
+            return "定位失败";
+        }
+    }
+
+    private void getLocation() {
+        if (initLocation()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            Location location = locationManager.getLastKnownLocation(locationProvider);
+            if (location != null) {
+                userX = location.getLatitude();
+                userY = location.getLongitude();
+            }
+        }
+    }
+
+    private boolean initLocation() {
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        if (providers.contains(LocationManager.GPS_PROVIDER)) {
+            // GPS
+            locationProvider = LocationManager.GPS_PROVIDER;
+        } else if (providers.contains(LocationManager.NETWORK_PROVIDER)) {
+            // Network
+            locationProvider = LocationManager.NETWORK_PROVIDER;
+        } else {
+            Looper.prepare();
+            Toast.makeText(getApplicationContext(), "位置服务不可用，请确保手机打开了位置信息并赋予软件位置权限", Toast.LENGTH_SHORT).show();
+            Looper.loop();
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -224,6 +323,9 @@ public class MainActivity extends AppCompatActivity {
         iv_icon_feature_1st = findViewById(R.id.iv_wt_feature_1st_state); // 明天天气图标
         iv_icon_feature_2nd = findViewById(R.id.iv_wt_feature_2nd_state); // 后天天气图标
         iv_icon_feature_3rd = findViewById(R.id.iv_wt_feature_3rd_state); // 大后天天气图标
+        // 初始化位置信息
+        userX = 0;
+        userY = 0;
         listen();
     }
 

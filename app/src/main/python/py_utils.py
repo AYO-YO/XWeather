@@ -81,3 +81,13 @@ def getAQI(city, need):
         return j['result'][0]['time'].split(' ')[1]
     else:
         return 'N/A'
+
+
+def getCity(x, y):
+    url = f'https://restapi.amap.com/v3/geocode/regeo?key=f7e2de0fbef462404e89d6f465c20d76&location={y},{x}&poitype=&radius=0&extensions=all&batch=false&roadlevel=1'
+    j = getData(url)
+    data = j['regeocode']['addressComponent']['city']
+    if data:
+        return data[:-1]
+    else:
+        return j['regeocode']['addressComponent']['district'][:-1]
