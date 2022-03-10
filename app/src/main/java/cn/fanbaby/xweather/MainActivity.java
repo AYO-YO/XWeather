@@ -14,7 +14,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
@@ -49,7 +48,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         init();
         initPython();
+        getPermissions();
         // 子线程，用于更新数据
+        refreshData();
+    }
+
+    private void refreshData() {
         new Thread(() -> {
             city = getCity();
             if (!city.equals("定位失败"))
@@ -57,40 +61,15 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void initPermissions() {
-        if (lacksPermission(permissions)) {//判断是否拥有权限
-            //请求权限，第二参数权限String数据，第三个参数是请求码便于在onRequestPermissionsResult 方法中根据code进行判断
-            ActivityCompat.requestPermissions(this, permissions, OPEN_SET_REQUEST_CODE);
-        }
-    }
-
-    //如果返回true表示缺少权限
-    public boolean lacksPermission(String[] permissions) {
-        for (String permission : permissions) {
-            //判断是否缺少权限，true=缺少权限
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                return true;
-            }
-        }
-        return false;
+    private void getPermissions() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, OPEN_SET_REQUEST_CODE);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case OPEN_SET_REQUEST_CODE:
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < grantResults.length; i++) {
-                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                            Toast.makeText(this, "未获取权限", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                    }
-                } else {
-                    Toast.makeText(this, "未获取权限", Toast.LENGTH_SHORT).show();
-                }
-                break;
+        if (requestCode == OPEN_SET_REQUEST_CODE) {
+            refreshData();
         }
     }
 
@@ -118,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
-                initPermissions();
                 return;
             }
             Location location = locationManager.getLastKnownLocation(locationProvider);
@@ -130,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
 
     private boolean initLocation() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -276,14 +255,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private void listen() {
         rs.setOnRefreshListener(refreshView -> {
+            city = getCity();
             getData(city);
             Toast.makeText(this, "刷新完成！", Toast.LENGTH_SHORT).show();
             rs.onRefreshComplete();
         });
 
-        iv_pull_arrow.setOnClickListener(v -> {
-            Toast.makeText(this, "暂不支持手动选择城市，敬请期待", Toast.LENGTH_SHORT).show();
-        });
+        iv_pull_arrow.setOnClickListener(v -> Toast.makeText(this, "暂不支持手动选择城市，敬请期待", Toast.LENGTH_SHORT).show());
     }
 
     /**
