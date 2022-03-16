@@ -44,8 +44,4 @@ public class GetWeather {
         String jsonStr = GetWeather.jsonStr(URL);
         return jsonStr;
     }
-
-    public static void main(String[] args) {
-        System.out.println(getCity("35", "114"));
-    }
 }
