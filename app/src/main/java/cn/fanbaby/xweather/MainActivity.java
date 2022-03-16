@@ -15,15 +15,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.chaquo.python.Python;
-import com.chaquo.python.android.AndroidPlatform;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import cn.fanbaby.xweather.Utils.GetWeather;
 import cn.fanbaby.xweather.Utils.StateToIcon;
 import cn.fanbaby.xweather.Utils.pulltorefresh.PullToRefreshScrollView;
 
@@ -34,23 +32,22 @@ public class MainActivity extends AppCompatActivity {
     private final String TAG = "XWeather_MAIN";
     private TextView tv_city, tv_update_time, tv_wt_state, tv_temp_high, tv_temp_low, tv_temp_current, tv_pm25_num, tv_pm25_state, tv_time_1st, tv_time_2nd, tv_time_3rd, tv_time_4th, tv_time_5th, tv_time_6th, tv_time_7th, tv_temp_1st, tv_temp_2nd, tv_temp_3rd, tv_temp_4th, tv_temp_5th, tv_temp_6th, tv_temp_7th, tv_temp_feature_high_1st, tv_temp_feature_high_2nd, tv_temp_feature_high_3rd, tv_temp_feature_low_1st, tv_temp_feature_low_2nd, tv_temp_feature_low_3rd, tv_humidity, tv_aqi, tv_direct, tv_power, tv_pm10;
     private ImageView iv_pull_arrow, iv_wt_icon, iv_icon_time_1st, iv_icon_time_2nd, iv_icon_time_3rd, iv_icon_time_4th, iv_icon_time_5th, iv_icon_time_6th, iv_icon_time_7th, iv_icon_feature_1st, iv_icon_feature_2nd, iv_icon_feature_3rd;
-    private Python py;
     private String city, updateTime, currentState, currentTemp, highTemp, lowTemp, pm25, airState, day_1st_high, day_2nd_high, day_3rd_high, day_1st_low, day_2nd_low, day_3rd_low, day_1st_state, day_2nd_state, day_3rd_state, humidity, aqi, direct, power, pm10, hour_next_3, hour_next_6, hour_next_9, hour_next_12, hour_next_15, hour_next_18, hour_next_21;
     private PullToRefreshScrollView rs;
     private LocationManager locationManager;
     private String locationProvider;
-    private double userX;
-    private double userY;
+    private String userX;
+    private String userY;
+    private String jsonStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
-        initPython();
         getPermissions();
         // 子线程，用于更新数据
-        refreshData();
+//        refreshData();
     }
 
     private void refreshData() {
@@ -81,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private String getCity() {
         try {
             getLocation();
-            return py.getModule("py_utils").callAttr("getCity", userX, userY).toString();
+            return GetWeather.getCity(userX, userY);
         } catch (Exception e) {
             return "定位失败";
         }
@@ -101,8 +98,8 @@ public class MainActivity extends AppCompatActivity {
             }
             Location location = locationManager.getLastKnownLocation(locationProvider);
             if (location != null) {
-                userX = location.getLatitude();
-                userY = location.getLongitude();
+                userX = String.valueOf(location.getLatitude());
+                userY = String.valueOf(location.getLongitude());
                 Log.d(TAG, "getLocation: 获取维度成功：" + userX);
                 Log.d(TAG, "getLocation: 获取经度成功：" + userY);
             }
@@ -184,15 +181,6 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    /**
-     * 初始化Python
-     */
-    private void initPython() {
-        if (!Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
-        }
-        py = Python.getInstance();
-    }
 
     /**
      * 初始化控件信息
@@ -245,8 +233,8 @@ public class MainActivity extends AppCompatActivity {
         iv_icon_feature_3rd = findViewById(R.id.iv_wt_feature_3rd_state); // 大后天天气图标
         rs = findViewById(R.id.rs_wt_pull_refresh);
         // 初始化位置信息
-        userX = 0;
-        userY = 0;
+        userX = "0";
+        userY = "0";
         listen();
     }
 
@@ -255,8 +243,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void listen() {
         rs.setOnRefreshListener(refreshView -> {
-            city = getCity();
-            getData(city);
+            refreshData();
             Toast.makeText(this, "刷新完成！", Toast.LENGTH_SHORT).show();
             rs.onRefreshComplete();
         });
@@ -264,27 +251,6 @@ public class MainActivity extends AppCompatActivity {
         iv_pull_arrow.setOnClickListener(v -> Toast.makeText(this, "暂不支持手动选择城市，敬请期待", Toast.LENGTH_SHORT).show());
     }
 
-    /**
-     * 获取对应城市的对应天气情况
-     *
-     * @param city 城市
-     * @param need 需要的天气状况，例如highTemp
-     * @return 查询的天气情况
-     */
-    private String getWeather(String city, String need) {
-        return py.getModule("py_utils").callAttr("getWeather", city, need).toString();
-    }
-
-    /**
-     * 获取对应城市的空气指数
-     *
-     * @param city 城市
-     * @param need 需要的空气指数内容，例如pm2.5
-     * @return 查询道德空气指数
-     */
-    private String getAQI(String city, String need) {
-        return py.getModule("py_utils").callAttr("getAQI", city, need).toString();
-    }
 
     /**
      * 获取数据
@@ -296,30 +262,32 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "无法获取位置信息！", Toast.LENGTH_SHORT).show();
             return;
         }
+        String url = "https://api.2fanbaby.cn/weather/" + city;
+        jsonStr = GetWeather.jsonStr(url);
         // 获取更新数据的时间
-        updateTime = getAQI(city, "time");
-        currentState = getWeather(city, "state");
-        currentTemp = getWeather(city, "current_temp");
-        highTemp = getWeather(city, "high_temp") + "℃";
-        lowTemp = getWeather(city, "low_temp") + "℃";
-        pm25 = getAQI(city, "pm25");
-        airState = getAQI(city, "state");
+        updateTime = GetWeather.get(jsonStr, "time");
+        currentState = GetWeather.get(jsonStr, "wt_state");
+        currentTemp = GetWeather.get(jsonStr, "current_temp");
+        highTemp = GetWeather.get(jsonStr, "high_temp") + "℃";
+        lowTemp = GetWeather.get(jsonStr, "low_temp") + "℃";
+        pm25 = GetWeather.get(jsonStr, "pm25");
+        airState = GetWeather.get(jsonStr, "aqi_state");
         // 获取未来3天的最高温、最低温和天气情况
-        day_1st_high = getWeather(city, "day_1st_high") + "℃";
-        day_2nd_high = getWeather(city, "day_2nd_high") + "℃";
-        day_3rd_high = getWeather(city, "day_3rd_high") + "℃";
-        day_1st_low = getWeather(city, "day_1st_low") + "℃";
-        day_2nd_low = getWeather(city, "day_2nd_low") + "℃";
-        day_3rd_low = getWeather(city, "day_3rd_low") + "℃";
-        day_1st_state = getWeather(city, "day_1st_state");
-        day_2nd_state = getWeather(city, "day_2nd_state");
-        day_3rd_state = getWeather(city, "day_3rd_state");
+        day_1st_high = GetWeather.get(jsonStr, "day_1st_high") + "℃";
+        day_2nd_high = GetWeather.get(jsonStr, "day_2nd_high") + "℃";
+        day_3rd_high = GetWeather.get(jsonStr, "day_3rd_high") + "℃";
+        day_1st_low = GetWeather.get(jsonStr, "day_1st_low") + "℃";
+        day_2nd_low = GetWeather.get(jsonStr, "day_2nd_low") + "℃";
+        day_3rd_low = GetWeather.get(jsonStr, "day_3rd_low") + "℃";
+        day_1st_state = GetWeather.get(jsonStr, "day_1st_state");
+        day_2nd_state = GetWeather.get(jsonStr, "day_2nd_state");
+        day_3rd_state = GetWeather.get(jsonStr, "day_3rd_state");
         // 获取空气质量
-        humidity = getWeather(city, "humidity");
-        aqi = getWeather(city, "aqi");
-        direct = getWeather(city, "direct");
-        power = getWeather(city, "power");
-        pm10 = getAQI(city, "pm10");
+        humidity = GetWeather.get(jsonStr, "humidity");
+        aqi = GetWeather.get(jsonStr, "aqi");
+        direct = GetWeather.get(jsonStr, "direct");
+        power = GetWeather.get(jsonStr, "power");
+        pm10 = GetWeather.get(jsonStr, "pm10");
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.SIMPLIFIED_CHINESE);
         // 格式化时间以取得获取数据的小时数
         Date time = new Date();

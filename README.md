@@ -2,11 +2,20 @@
 
 基于聚合数据API完成的一款无广告天气软件
 
+本分支基于`Python Flask`框架开发API完成，不再使用`chaquopy`作为内置`Python`完成数据解析。
+
+API开源地址：<https://gitee.com/ayo_yo/XWeatherAPI>
+
 ## 更新计划
 
 - 支持手动选择地区
 
 ## 更新日志
+
+### v1.2.1
+
+- 删除了内置Python数据请求及解析模块，改用HTTP直接请求API
+- 修复了刷新时获取定位异常的小bug
 
 ### v1.2
 
